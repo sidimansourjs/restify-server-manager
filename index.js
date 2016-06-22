@@ -55,7 +55,7 @@ class RestifyServerManager {
 		  
 		// PRE handlers
 		this.server.pre(restify.pre.sanitizePath());
-		this.server.pre(this.versioningMiddleware(this.config.exceptedRoutes));
+		this.server.pre(this.versioningMiddleware().unless({path: this.config.exceptedRoutes}));
 		
 		// Uses for all routes
 		this.server.use(restify.acceptParser(this.server.acceptable ));
