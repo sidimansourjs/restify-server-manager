@@ -22,9 +22,15 @@
     "url": "https://github.com/sidimansourjs/restify-server-manager.git"
   },
   "dependencies": {
+    "bluebird": "^3.4.1",
     "bunyan": "^1.8.1",
+    "chai": "^2.1.2",
+    "chai-as-promised": "^4.3.0",
+    "mocha": "^2.2.1",
+    "monitorer": "0.0.7",
     "restify": "^4.1.1",
-    "restify-versioning-middleware": "^1.1.2"
+    "restify-versioning-middleware": "^1.1.2",
+    "unirest": "^0.5.0"
   },
   "devDependencies": {}
 }
