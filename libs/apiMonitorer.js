@@ -6,11 +6,11 @@ function apiMonitorer(conf) {
 
   const
         config      = conf,
-        monitorer   =  new require('monitorer')({url: config.monitorer.baseurl + config.monitorer.path});
+        monitorer   =  new require('monitorer')({url: config.monitorer.basepath + config.monitorer.urlpath});
         ;
 
     function monitor(req, res, route, err) {
-
+        
         if(route.spec && route.spec.monitor){
 
           let

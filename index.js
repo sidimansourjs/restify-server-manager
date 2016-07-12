@@ -33,7 +33,7 @@ class RestifyServerManager {
 				streams: [{
 				   type: 'rotating-file',
 				   src: true,
-				   path: './'+ this.config.logging.path +'/'+  this.config.name +'_'+ "LOG" +'.log',
+				   path: process.cwd() + this.config.logging.path +'/'+  this.config.name +'_'+ "LOG" +'.log',
 				   period: this.config.logging.rotation_period,   // daily rotation
 				   count: this.config.logging.back_copies_count  // back copies
 				}],
@@ -76,7 +76,7 @@ class RestifyServerManager {
 		//Set up routes
 		if(this.config.routes.length > 0){
 			this.config.routes.map(
-				item => item()
+				item => require(process.cwd() + item)(itself.server, restify, itself.logger, itself.config)
 			)
 		}
 		
@@ -97,7 +97,7 @@ class RestifyServerManager {
 				 name: itself.config.name + 'AUDIT',
 				 streams: [{
 					type: 'rotating-file',
-					path: './'+ itself.config.logging.path +'/'+ itself.config.name +'_'+ 'AUDIT' +'.log',
+					path: process.cwd() + itself.config.logging.path +'/'+ itself.config.name +'_'+ 'AUDIT' +'.log',
 					period: itself.config.logging.rotation_period,   // daily rotation
 					count: itself.config.logging.back_copies_count  // back copies
 				}]
