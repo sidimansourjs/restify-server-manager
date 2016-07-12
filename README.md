@@ -9,7 +9,7 @@ npm install --save restify-server-manager
 ```
 
 ## Purpose
-To provide a component that creates a restify server object based on passed configuration, and starts/stops the server on demand. 
+To provide a component that creates a restify server object based on passed configuration, and starts/stops the server on demand.
 
 
 ## Configuration
@@ -17,9 +17,9 @@ To provide a component that creates a restify server object based on passed conf
 Config object example HTTP:
 
 		{
-		    name: name,
-			routes: [],
-		    version: version,
+	    name: name,
+		  routes: ["/src/server/routes/paymentRouter"],
+	    version: version,
 			monitorer: {
 				enabled: true,
 				basepath: 'http://127.0.0.1:8089',
@@ -29,7 +29,7 @@ Config object example HTTP:
 				enabled: true,
 				level: "trace",
 				audit: true,
-				path: "logs",
+				path: "/logs",
 				rotation_period: "15m",
 				back_copies_count: 2
 			},
@@ -51,7 +51,7 @@ Config object example HTTP:
 				url: "http://127.0.0.1:8480"
 			 }
   	    }
-		
+
 Config object example HTTPS:
 
 		{
@@ -96,7 +96,7 @@ Basic configuration with logging enabled.
 			enabled: true,
 			level: "trace",
 			audit: false,
-			path: "logs",
+			path: "/logs",
 			rotation_period: "15m",
 			back_copies_count: 2
 		},
@@ -107,11 +107,11 @@ Basic configuration with logging enabled.
 			url: "http://127.0.0.1:8480"
 		 }
 	}
-	
+
 	var serverManager = new ServerManager(_conf);
-	
+
 	var server = serverManager.createServer();
-	
+
 	serverManager.startServer();
 
 In the example above you can add the `monitorer` property to add an `after` handler to designated routes. This handler will send a formatted object with information about the route I/O as well as basic information about the status of the route call.
@@ -126,50 +126,50 @@ This after handler will send the below information to the defined final end poin
 
 	server.post({ path: "/payment/", version: "1.0.0", monitor: true }
 
-Monitorer information example:	
+Monitorer information example:
 
-	{ 
-	    "type" : "fatal", 
-	    "service" : "postpayment100", 
-	    "group" : "[app name] - 1.3.4", 
-	    "result" : "error", 
-	    "when" : "2016-06-22T08:10:23.000+0000", 
-	    "box" : "********", 
+	{
+	    "type" : "fatal",
+	    "service" : "postpayment100",
+	    "group" : "[app name] - 1.3.4",
+	    "result" : "error",
+	    "when" : "2016-06-22T08:10:23.000+0000",
+	    "box" : "********",
 	    "info" : {
-	        "remoteAddress" : "************", 
-	        "remotePort" : 56217, 
-	        "req_id" : "**********", 
-	        "route" : "postpayment100", 
+	        "remoteAddress" : "************",
+	        "remotePort" : 56217,
+	        "req_id" : "**********",
+	        "route" : "postpayment100",
 	        "req" : {
 	            "query" : {
 					...
-	            }, 
+	            },
 	            "params" : {
 	                ...
-	            }, 
+	            },
 	            "body" : {
 	                ...
-	            }, 
+	            },
 	            "route" : {
-	                "path" : "/payment/", 
+	                "path" : "/payment/",
 	                "version" : "1.0.0",  
-	                "monitor" : true, 
-	                "method" : "POST", 
+	                "monitor" : true,
+	                "method" : "POST",
 	                "versions" : [
 	                    "2.0.0"
-	                ], 
+	                ],
 	                "name" : "postpayment100"
-	            }, 
+	            },
 	            "context" : {
 	                ...
-	            }, 
+	            },
 	            "headers" : {
 	                ...
 	            }
-	        }, 
+	        },
 	        "res" : {
 	            ...
-	        }, 
+	        },
 	        "latency" : 13
 	    }
 	}
@@ -264,7 +264,7 @@ Monitorer information example:
 		    }
 
 - **API Routing** (`routers`) This section should contain the routes to be used by the server on start up. Ideally should not be any difference between environments and instances for this configuration.
-			
+
 			var payment = require('routes/payment')
 		    "routes": [
 		        payment
