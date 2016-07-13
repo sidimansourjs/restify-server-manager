@@ -15,22 +15,56 @@
   "engines": {
     "node": "4.x"
   },
-  "author": "SidiMansourJs",
+  "author": {
+    "name": "SidiMansourJs"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sidimansourjs/restify-server-manager.git"
+    "url": "git+https://github.com/sidimansourjs/restify-server-manager.git"
   },
   "dependencies": {
     "bluebird": "^3.4.1",
     "bunyan": "^1.8.1",
     "chai": "^2.1.2",
     "chai-as-promised": "^4.3.0",
+    "express-error-handler": "^1.1.0",
     "mocha": "^2.2.1",
     "monitorer": "0.0.7",
     "restify": "^4.1.1",
     "restify-versioning-middleware": "^1.1.2",
     "unirest": "^0.5.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "gitHead": "bc39ea4d67b2d5b9f03fafac0e65803d664da32b",
+  "bugs": {
+    "url": "https://github.com/sidimansourjs/restify-server-manager/issues"
+  },
+  "homepage": "https://github.com/sidimansourjs/restify-server-manager#readme",
+  "_id": "restify-server-manager@1.0.1",
+  "_shasum": "fe0ed8a51eb534cb9dbea64452b5c709e0a1c889",
+  "_from": "restify-server-manager@>=1.0.1 <2.0.0",
+  "_npmVersion": "2.14.12",
+  "_nodeVersion": "4.2.6",
+  "_npmUser": {
+    "name": "sidimansourjs",
+    "email": "iromero@sidimansourjs.es"
+  },
+  "dist": {
+    "shasum": "fe0ed8a51eb534cb9dbea64452b5c709e0a1c889",
+    "tarball": "http://islinnxp01.scisb.isban.corp:8081/nexus/content/repositories/npmjs/restify-server-manager/-/restify-server-manager-1.0.1.tgz"
+  },
+  "maintainers": [
+    {
+      "name": "sidimansourjs",
+      "email": "iromero@sidimansourjs.es"
+    }
+  ],
+  "_npmOperationalInternal": {
+    "host": "packages-12-west.internal.npmjs.com",
+    "tmp": "tmp/restify-server-manager-1.0.1.tgz_1468318294914_0.8293341735843569"
+  },
+  "directories": {},
+  "_resolved": "http://islinnxp01.scisb.isban.corp:8081/nexus/content/repositories/npmjs/restify-server-manager/-/restify-server-manager-1.0.1.tgz",
+  "readme": "ERROR: No README data found!"
 }

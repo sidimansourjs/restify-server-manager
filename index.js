@@ -1,7 +1,8 @@
 "use strict";
 const 
 	logger = require("bunyan"),
-	restify = require("restify")
+	restify = require("restify"),
+	errorHandler = require('express-error-handler')
 	;
 
 class RestifyServerManager {
@@ -53,9 +54,35 @@ class RestifyServerManager {
             throw new TypeError("Missing protocol or invalid value: " + this.config.server.protocol);
           }
 		  
+		// Error handlers
+		let handleError = errorHandler({ 
+			server: this.server, 
+			framework: 'restify'
+		})
+
+		// Since restify error handlers take error last, and process 'uncaughtError' sends error first, you'll need another one for process exceptions. 
+		// Don't pass the framework: 'restify' setting this time:
+		let handleProcessError = errorHandler({	server: this.server	})
+		
+		// This is called when an error is accidentally thrown. Under the hood, it uses Node's domain module for error handling, which limits the
+		// scope of the domain to the request / response cycle. Restify hooks up the domain for you, so you don't have to worry about binding request and response to the domain.
+		this.server.on('uncaughtException', handleError);
+
+		// We should still listen for process errors and shut down if we catch them. This handler will try to let server connections drain, first,
+		// and invoke your custom handlers if you have any defined.
+		process.on('uncaughtException', handleProcessError);
+		  
 		// PRE handlers
 		this.server.pre(restify.pre.sanitizePath());
 		this.server.pre(this.versioningMiddleware().unless({path: this.config.exceptedRoutes}));
+		
+		// Set up adhoc pre handlers
+		if(this.config.preHandlers.length > 0){
+			this.config.preHandlers.map(
+				item => itself.server.pre(item)
+			)
+		}
+		
 		
 		// Uses for all routes
 		this.server.use(restify.acceptParser(this.server.acceptable ));
@@ -65,6 +92,14 @@ class RestifyServerManager {
 		this.server.use(restify.fullResponse());
 		this.server.use(restify.requestLogger({}));
 		this.server.use(noCacheMiddleware);
+		
+		// Set up adhoc uses
+		if(this.config.uses.length > 0){
+			this.config.uses.map(
+				item => itself.server.use(item)
+			)
+		}
+		
 		
 		//Set up heartbeat route
 		if(this.config.heartbeat){
@@ -120,7 +155,10 @@ class RestifyServerManager {
 	}
 }
 
-module.exports = RestifyServerManager;
+module.exports = {
+ RestifyServerManager: RestifyServerManager,
+ errorHandler: errorHandler
+}
 
 /**
  * @private
@@ -142,11 +180,14 @@ var mergeConfig = function (config) {
      let _conf =  {
 		    name: paramConf.name || 'Default',
 		    version: paramConf.version || '1.0.0',
+			preHandlers: paramConf.preHandlers || [],
+			uses: paramConf.uses || [],
 			monitorer: {
 				enabled: (paramConf.monitorer && paramConf.monitorer.enabled)?paramConf.monitorer.enabled:false,
 				basepath: (paramConf.monitorer && paramConf.monitorer.basepath)?paramConf.monitorer.basepath:'http://127.0.0.1:8080',
 				urlpath: (paramConf.monitorer && paramConf.monitorer.urlpath)?paramConf.monitorer.urlpath:'/api/v1/log',
 			},
+			formatters: paramConf.formatters || {},
 			afterHooks: paramConf.afterHooks || [],
 			heartbeat: paramConf.heartbeat || true,
 			exceptedRoutes: paramConf.exceptedRoutes || [],
@@ -168,3 +209,5 @@ var mergeConfig = function (config) {
   	    };
 	return _conf;	  
 }
+
+

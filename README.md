@@ -2,6 +2,13 @@
 # restify-server-manager
  A module to start a [restify.js](http://restify.com) server based on configuration.   
 
+ Includes restify error handling from [https://www.npmjs.com/package/express-error-handler](https://www.npmjs.com/package/express-error-handler)
+
+ Adds required security headers to the JSON API and the needed uses and handlers to get a JSON API running.
+
+ Makes use of Restify `after` event on each route to allow easy configuration for functional monitoring and Audit
+
+ Can set up formatters, heartbeat route, logging, ... and some other features! 
 
 ## Install
 ```
@@ -87,7 +94,7 @@ run coverage
 
 Basic configuration with logging enabled.
 
-	var ServerManager = require('restify-server-manager');
+	var ServerManager = require('restify-server-manager').RestifyServerManager;
 	var _conf = {
 		name: 'name',
 		routes: [],
@@ -211,6 +218,14 @@ Monitorer information example:
 - **Api name** (`name`) Name of the API that will be started up.
 
 			name: 'greatAPI',
+
+- **Api pre request handlers** (`preHandlers`) Array of middlewares to be added as on demand functions to be executed prior to route code execution.
+
+			preHandlers: [(req, res, next) => true, constAsFunction, ....],
+
+- **Api route uses** (`uses`) Array of middlewares to be added as on demand functions to be executed in the chain of the route code execution.
+
+			uses: [(req, res, next)=>{next()}, constAsFunction, ....],
 
 - **Api Heartbeat** (`heartbeat`) If `true` will create a root route (http://host:port/)
 
