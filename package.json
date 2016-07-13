@@ -1,6 +1,6 @@
 {
   "name": "restify-server-manager",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": " A module to create/start/stop a restify.js server based on configuration object.",
   "main": "index.js",
   "scripts": {
