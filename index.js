@@ -68,6 +68,13 @@ class RestifyServerManager {
 		// scope of the domain to the request / response cycle. Restify hooks up the domain for you, so you don't have to worry about binding request and response to the domain.
 		this.server.on('uncaughtException', handleError);
 
+		// This is required as MethodNotAllowed, VersionNotAllowed, UnsupportedMediaType and NotFound sends the response before any error handling can occur 
+        // so it was stopping the process as no headers can be set when response is already sent
+        this.server.on('MethodNotAllowed', (request, response, cb) => response.send(cb));
+        this.server.on('NotFound', (request, response, cb) => response.send(cb));
+        this.server.on('VersionNotAllowed', (request, response, cb) => response.send(cb));
+        this.server.on('UnsupportedMediaType', (request, response, cb) => response.send(cb));
+
 		// We should still listen for process errors and shut down if we catch them. This handler will try to let server connections drain, first,
 		// and invoke your custom handlers if you have any defined.
 		process.on('uncaughtException', handleProcessError);
