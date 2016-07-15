@@ -18,6 +18,7 @@
   "author": {
     "name": "SidiMansourJs"
   },
+  "readme": "README.md",
   "license": "MIT",
   "repository": {
     "type": "git",
