@@ -6,7 +6,7 @@ const
 	restify = require('restify'),
 	unirest = require('unirest'),
 	fs = require('fs'),
-	ServerManager = require('../index.js')
+	ServerManager = require('../index.js').RestifyServerManager
 	;
 let serverManager;
 let _conf = {
@@ -105,38 +105,6 @@ describe("Server Manager service", function () {
 		expect(serverManager.config.server.url).to.equal(_conf.server.url);
     });
 	
-	it("Should initialize and create a new Restify server based on adhoc config", function () {
-        serverManager = new ServerManager(_conf);
-		let newServer = serverManager.createServer();
-		expect(newServer).to.be.object;
-		expect(newServer.name).to.equal(_conf.name);
-		expect(newServer.versions).to.equal(_conf.version);
-    });
 	
-	it("Should initialize, create and start a new Restify server based on adhoc config", function (done) {
-		
-		if (!fs.existsSync(_conf.logging.path)){
-			fs.mkdirSync(_conf.logging.path);
-			fs.writeFileSync(_conf.logging.path +'/'+  _conf.name +'_'+ "LOG" +'.log'  , '{}', 'utf8');
-			fs.writeFileSync(_conf.logging.path +'/'+  _conf.name +'_'+ "AUDIT" +'.log'  , '{}', 'utf8');
-		}
-		
-		serverManager = new ServerManager(_conf);
-		let newServer = serverManager.createServer();
-		
-		serverManager.startServer();
-		expect(newServer).to.be.object;
-		expect(newServer.name).to.equal(_conf.name);
-		expect(newServer.versions).to.equal(_conf.version);	
-		
-		unirest
-            .get('http://127.0.0.1:' + _conf.server.port)
-            .end(function (response) {
-              expect(response.statusCode).to.equal(200);
-			  
-              done();
-            });	
-		
-    });
 	
 });

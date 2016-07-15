@@ -1,6 +1,10 @@
 ![](sidimansour.png)
 # restify-server-manager
- A module to start a [restify.js](http://restify.com) server based on configuration.   
+ A module to create/start/stop a [restify.js](http://restify.com) server based on configuration.   
+
+ This module aims to help developers try to create an API with Restify. It allows easy set up and includes some **features** that can be enabled via configuration settings: 
+
+ **json-web-token**, **monitoring**, **pre/while/after request hooks**, **formatters**, **error handling**, **heartbeat route**, **logging** ... **and some other features!**
 
  Includes restify error handling from [https://www.npmjs.com/package/express-error-handler](https://www.npmjs.com/package/express-error-handler)
 
@@ -8,7 +12,6 @@
 
  Makes use of Restify `after` event on each route to allow easy configuration for functional monitoring and Audit
 
- Can set up formatters, heartbeat route, logging, ... and some other features! 
 
 ## Install
 ```
@@ -24,9 +27,9 @@ To provide a component that creates a restify server object based on passed conf
 Config object example HTTP:
 
 		{
-	    name: name,
-		  routes: ["/src/server/routes/paymentRouter"],
-	    version: version,
+	    	name: name,
+		  	routes: ["/src/server/routes/paymentRouter"],
+	    	version: version,
 			monitorer: {
 				enabled: true,
 				basepath: 'http://127.0.0.1:8089',
@@ -181,6 +184,10 @@ Monitorer information example:
 	    }
 	}
 
+There is also a way to stop the server on demand. In the above example the server will be stop by calling the `stopServer` method
+
+	serverManager.stopServer()
+
 ## Parameters
 
 - **Server** (`server`) HTTP/S will be started based on object key values. If *HTTPS* is choosen for server start up (`tsl.key`) and (`tsl.cert`) have to be provided. Visit [Restify site](http://restify.com/#creating-a-server) for futher details.
@@ -295,6 +302,22 @@ Monitorer information example:
 				basepath: 'http://127.0.0.1:8089',
 				urlpath: '/api/v1/logone',
 			},
+
+- **API Security** (`security`) This section should contain the server configuration for json-web-token verification. The certificate will be used to verify that the token was signed with and to verify its integrity.
+
+	- **Enable security** (`enabled`) Boolean to determine if JWT middleware should be applied or not.
+	- **Private certificate** (`privatekeylocation`) Path in the system for the private certificate. Defaults to `"certs/server-cert.pem"`
+	- **Excepted Routes** (`exceptedRoutes`) Paths that do not require token verification. See express-unless component for further details on how to set up excepted routes:
+	
+		[https://www.npmjs.com/package/express-unless](https://www.npmjs.com/package/express-unless)
+	- **Algorithm** (`algorithm`) Algorith that was used to sign the provided tokens. Defaults to `RS256`
+
+		    security : {
+		        enabled: false,
+		        privatekeylocation:"certs/payoo-cert.pem",
+		        algorithm:"RS256",
+				exceptedRoutes: [ { url: '/excepted', methods: ['GET', 'PUT']  } ]
+		    },
 
 ## License
 Copyright (c) 2016 Sidi Mansour Js.

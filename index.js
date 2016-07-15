@@ -9,9 +9,10 @@ class RestifyServerManager {
 
 	constructor(config){
 		this.logger, this.server;
-		this.versioningMiddleware = require("restify-versioning-middleware");
-		this.config = mergeConfig(config);
-		this.apiMonitorer = require('./libs/apiMonitorer')
+		this.versioningMiddleware 	= require("restify-versioning-middleware");
+		this.config 				= mergeConfig(config);
+		this.apiMonitorer 			= require('./libs/apiMonitorer'),
+		this.apiJWT 	 			= require('./libs/apiJWT')
 		
 		if(this.config.server && this.config.server.protocol === 'HTTPS'){
 			if(this.config.server.tsl){
@@ -47,7 +48,7 @@ class RestifyServerManager {
 	}
 	
 	createServer(){
-	let itself = this;
+	  let itself = this;
       if (this.config.server.protocol === "HTTPS" || this.config.server.protocol === "HTTP") {
         this.server = restify.createServer(this.config);
         } else {
@@ -67,13 +68,14 @@ class RestifyServerManager {
 		// This is called when an error is accidentally thrown. Under the hood, it uses Node's domain module for error handling, which limits the
 		// scope of the domain to the request / response cycle. Restify hooks up the domain for you, so you don't have to worry about binding request and response to the domain.
 		this.server.on('uncaughtException', handleError);
-
+		
 		// This is required as MethodNotAllowed, VersionNotAllowed, UnsupportedMediaType and NotFound sends the response before any error handling can occur 
-        // so it was stopping the process as no headers can be set when response is already sent
-        this.server.on('MethodNotAllowed', (request, response, cb) => response.send(cb));
-        this.server.on('NotFound', (request, response, cb) => response.send(cb));
-        this.server.on('VersionNotAllowed', (request, response, cb) => response.send(cb));
-        this.server.on('UnsupportedMediaType', (request, response, cb) => response.send(cb));
+		// so it was stopping the process as no headers can be set when response is already sent
+		this.server.on('MethodNotAllowed', (request, response, cb) => response.send(cb));
+		this.server.on('NotFound', (request, response, cb) => response.send(cb));
+		this.server.on('VersionNotAllowed', (request, response, cb) => response.send(cb));
+		this.server.on('UnsupportedMediaType', (request, response, cb) => response.send(cb));
+		
 
 		// We should still listen for process errors and shut down if we catch them. This handler will try to let server connections drain, first,
 		// and invoke your custom handlers if you have any defined.
@@ -99,6 +101,13 @@ class RestifyServerManager {
 		this.server.use(restify.fullResponse());
 		this.server.use(restify.requestLogger({}));
 		this.server.use(noCacheMiddleware);
+		
+		// If security is enabled, check the token integrity in all routes but the excepted ones
+		if(this.config.security.enabled){
+			if(this.config.heartbeat)
+				this.config.security.exceptedRoutes.push({ url: '/', methods: ['GET']  })
+			this.server.pre(this.apiJWT(this.config, restify).unless({path: this.config.security.exceptedRoutes }));
+			}
 		
 		// Set up adhoc uses
 		if(this.config.uses.length > 0){
@@ -198,6 +207,12 @@ var mergeConfig = function (config) {
 			afterHooks: paramConf.afterHooks || [],
 			heartbeat: paramConf.heartbeat || true,
 			exceptedRoutes: paramConf.exceptedRoutes || [],
+			security: {
+				enabled: (paramConf.security && paramConf.security.enabled)?paramConf.security.enabled:false,
+				privatekeylocation: (paramConf.security && paramConf.security.privatekeylocation)?paramConf.security.privatekeylocation:"certs/server-cert.pem",
+				algorithm: (paramConf.security && paramConf.security.algorithm)?paramConf.security.algorithm:"RS256",
+				exceptedRoutes: (paramConf.security && paramConf.security.exceptedRoutes)?paramConf.security.exceptedRoutes:[]				
+			},
 			routes: paramConf.routes || [],
 			logging: {
 				enabled: (paramConf.logging && paramConf.logging.enabled)?paramConf.logging.enabled:false,
