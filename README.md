@@ -10,8 +10,48 @@
 
  Adds required security headers to the JSON API and the needed uses and handlers to get a JSON API running.
 
- Makes use of Restify `after` event on each route to allow easy configuration for functional monitoring and Audit
+ Makes use of Restify `after` event on each route to allow easy configuration for functional monitoring and Audit. 
 
+
+ v1.2.3 => From this version the module accepts external log instances to be passed as parameter
+
+`config.logging.logger`
+
+		config.logging.logger = require("bunyan").createLogger({
+	        name: packge.name + "LOG",
+	        streams: [{
+	            type: 'raw',
+	            stream: new require('bunyan-rotating-file-stream')({
+	                path: config.logging.path +'/'+  packge.name +'_'+ "LOG" +'.log',
+	                period: config.logging.rotation_period,          // daily rotation 
+	                totalFiles: config.logging.back_copies_count,        // keep 10 back copies 
+	                rotateExisting: true,  // Give ourselves a clean file when we start up, based on period 
+	                threshold: '10m',      // Rotate log files larger than 10 megabytes 
+	                totalSize: '200m',     // Don't keep more than 200mb of archived log files 
+	                gzip: true             // Compress the archive log files to save space 
+	            })
+	        }],
+	        level: config.logging.level
+	      })
+
+`config.logging.auditLogger`
+
+		config.logging.auditLogger = require("bunyan").createLogger({
+	        name: packge.name + "AUDIT",
+	        streams: [{
+	            type: 'raw',
+	            stream: new require('bunyan-rotating-file-stream')({
+	                path: config.logging.path +'/'+  packge.name +'_'+ "AUDIT" +'.log',
+	                period: config.logging.rotation_period,          // daily rotation 
+	                totalFiles: config.logging.back_copies_count,    // keep 10 back copies 
+	                rotateExisting: true,                            // Give ourselves a clean file when we start up, based on period 
+	                threshold: '10m',                                // Rotate log files larger than 10 megabytes 
+	                totalSize: '200m',                               // Don't keep more than 200mb of archived log files 
+	                gzip: true                                       // Compress the archive log files to save space 
+	            })
+	        }],
+	        level: config.logging.level
+	      }))
 
 ## Install
 ```
@@ -271,7 +311,9 @@ There is also a way to stop the server on demand. In the above example the serve
 		- (`"debug"`) (20): Anything else, i.e. too verbose to be included in "info" level.
 		- (`"trace"`) (10): Logging from external libraries used by your app or *very*
 		  detailed application logging.
-	- **Audit traces** (`audit`) yes/no. If set to *yes* a new audit logger will be starting to write to file any I/O.
+	- **Logger Instance** (`logger`) Optional parameter when logging is enabled, it will use the given logger instance instead of creating a new one.
+	- **Audit traces** (`audit`) Boolean. If set to *true* a new audit logger will be starting to write to file any I/O.
+	- **Audit Logger Instance** (`auditLogger`) Optional parameter when audit is enabled, it will use the given logger instance instead of creating a new one.
 	- **Logs folder** (`path`) String that contains the path for the log folder.
 	- **Log file rotation** (`rotation_period`) The log files will rotate to a new file when the given period has expired.
 	- **Log copies to store** (`back_copies_count`) Number of log copies to be mantained by the logging service.

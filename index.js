@@ -28,7 +28,7 @@ class RestifyServerManager {
 			}
 		}
 		
-		if(this.config.logging.enabled){
+		if(this.config.logging.enabled && !this.config.logging.logger){
 			
 			this.logger = logger.createLogger({
 				name: this.config.name + "LOG",
@@ -42,8 +42,10 @@ class RestifyServerManager {
 				level: this.config.logging.level
 			  })
 			  
-			this.config.log = this.logger;
-        	this.config.log.info('Server started with log level %s', config.logging.level);
+			this.config.log = this.logger
+        	this.config.log.info('Server started with log level %s', config.logging.level)
+		}else if(this.config.logging.enabled && this.config.logging.logger){
+			this.logger = this.config.logging.logger
 		}
 	}
 	
@@ -75,11 +77,6 @@ class RestifyServerManager {
 		this.server.on('NotFound', (request, response, cb) => response.send(cb));
 		this.server.on('VersionNotAllowed', (request, response, cb) => response.send(cb));
 		this.server.on('UnsupportedMediaType', (request, response, cb) => response.send(cb));
-		
-
-		// We should still listen for process errors and shut down if we catch them. This handler will try to let server connections drain, first,
-		// and invoke your custom handlers if you have any defined.
-		process.on('uncaughtException', handleProcessError);
 		  
 		// PRE handlers
 		this.server.pre(restify.pre.sanitizePath());
@@ -142,7 +139,7 @@ class RestifyServerManager {
 		}
 		
 		// Set up Audit logger
-		if(this.config.logging.audit){
+		if(this.config.logging.audit && !this.config.logging.auditLogger){
 			this.server.on('after', restify.auditLogger({
 			   log: logger.createLogger({
 				 name: itself.config.name + 'AUDIT',
@@ -154,6 +151,10 @@ class RestifyServerManager {
 				}]
 			   })
 			  }));			
+		}else if(this.config.logging.audit && this.config.logging.auditLogger){
+			this.server.on('after', restify.auditLogger({
+			   log: this.config.logging.auditLogger
+			  }));
 		}
 
 		return this.server;		
@@ -216,8 +217,10 @@ var mergeConfig = function (config) {
 			routes: paramConf.routes || [],
 			logging: {
 				enabled: (paramConf.logging && paramConf.logging.enabled)?paramConf.logging.enabled:false,
+				logger: (paramConf.logging && paramConf.logging.logger)?paramConf.logging.logger:null,
 				level: (paramConf.logging && paramConf.logging.level)?paramConf.logging.level:"info",
 				audit: (paramConf.logging && paramConf.logging.audit)?paramConf.logging.audit:false,
+				auditLogger: (paramConf.logging && paramConf.logging.auditLogger)?paramConf.logging.auditLogger:null,
 				path: (paramConf.logging && paramConf.logging.path)?paramConf.logging.path:"logs",
 				rotation_period: (paramConf.logging && paramConf.logging.rotation_period)?paramConf.logging.rotation_period:"15m",
 				back_copies_count: (paramConf.logging && paramConf.logging.back_copies_count)?paramConf.logging.back_copies_count:2
