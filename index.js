@@ -1,8 +1,7 @@
 "use strict";
-const 
+const
 	logger = require("bunyan"),
-	restify = require("restify"),
-	errorHandler = require('express-error-handler')
+	restify = require("restify")
 	;
 
 class RestifyServerManager {
@@ -13,7 +12,7 @@ class RestifyServerManager {
 		this.config 				= mergeConfig(config);
 		this.apiMonitorer 			= require('./libs/apiMonitorer'),
 		this.apiJWT 	 			= require('./libs/apiJWT')
-		
+
 		if(this.config.server && this.config.server.protocol === 'HTTPS'){
 			if(this.config.server.tsl){
 				this.config.server.tsl = {
@@ -27,9 +26,9 @@ class RestifyServerManager {
 				}
 			}
 		}
-		
+
 		if(this.config.logging.enabled && !this.config.logging.logger){
-			
+
 			this.logger = logger.createLogger({
 				name: this.config.name + "LOG",
 				streams: [{
@@ -41,14 +40,14 @@ class RestifyServerManager {
 				}],
 				level: this.config.logging.level
 			  })
-			  
+
 			this.config.log = this.logger
         	this.config.log.info('Server started with log level %s', config.logging.level)
 		}else if(this.config.logging.enabled && this.config.logging.logger){
 			this.logger = this.config.logging.logger
 		}
 	}
-	
+
 	createServer(){
 	  let itself = this;
       if (this.config.server.protocol === "HTTPS" || this.config.server.protocol === "HTTP") {
@@ -56,40 +55,19 @@ class RestifyServerManager {
         } else {
             throw new TypeError("Missing protocol or invalid value: " + this.config.server.protocol);
           }
-		  
-		// Error handlers
-		let handleError = errorHandler({ 
-			server: this.server, 
-			framework: 'restify'
-		})
 
-		// Since restify error handlers take error last, and process 'uncaughtError' sends error first, you'll need another one for process exceptions. 
-		// Don't pass the framework: 'restify' setting this time:
-		let handleProcessError = errorHandler({	server: this.server	})
-		
-		// This is called when an error is accidentally thrown. Under the hood, it uses Node's domain module for error handling, which limits the
-		// scope of the domain to the request / response cycle. Restify hooks up the domain for you, so you don't have to worry about binding request and response to the domain.
-		this.server.on('uncaughtException', handleError);
-		
-		// This is required as MethodNotAllowed, VersionNotAllowed, UnsupportedMediaType and NotFound sends the response before any error handling can occur 
-		// so it was stopping the process as no headers can be set when response is already sent
-		this.server.on('MethodNotAllowed', (request, response, cb) => response.send(cb));
-		this.server.on('NotFound', (request, response, cb) => response.send(cb));
-		this.server.on('VersionNotAllowed', (request, response, cb) => response.send(cb));
-		this.server.on('UnsupportedMediaType', (request, response, cb) => response.send(cb));
-		  
 		// PRE handlers
 		this.server.pre(restify.pre.sanitizePath());
 		this.server.pre(this.versioningMiddleware().unless({path: this.config.exceptedRoutes}));
-		
+
 		// Set up adhoc pre handlers
 		if(this.config.preHandlers.length > 0){
 			this.config.preHandlers.map(
 				item => itself.server.pre(item)
 			)
 		}
-		
-		
+
+
 		// Uses for all routes
 		this.server.use(restify.acceptParser(this.server.acceptable ));
 		this.server.use(restify.queryParser());
@@ -98,46 +76,46 @@ class RestifyServerManager {
 		this.server.use(restify.fullResponse());
 		this.server.use(restify.requestLogger({}));
 		this.server.use(noCacheMiddleware);
-		
+
 		// If security is enabled, check the token integrity in all routes but the excepted ones
 		if(this.config.security.enabled){
 			if(this.config.heartbeat)
 				this.config.security.exceptedRoutes.push({ url: '/', methods: ['GET']  })
 			this.server.pre(this.apiJWT(this.config, restify).unless({path: this.config.security.exceptedRoutes }));
 			}
-		
+
 		// Set up adhoc uses
 		if(this.config.uses.length > 0){
 			this.config.uses.map(
 				item => itself.server.use(item)
 			)
 		}
-		
-		
+
+
 		//Set up heartbeat route
 		if(this.config.heartbeat){
 			this.server.get({ path: '/'}, function(req, res, next) {
 				return next(res.json({name: itself.config.name , version: itself.config.version , date: new Date() }));
 			});
 		}
-		
+
 		//Set up routes
 		if(this.config.routes.length > 0){
 			this.config.routes.map(
 				item => require(process.cwd() + item)(itself.server, restify, itself.logger, itself.config)
 			)
 		}
-		
+
 		// Set up after hooks
 		if(this.config.monitorer.enabled) this.server.on('after', this.apiMonitorer(this.config));
-		
+
 		// Set up adhoc after hooks
 		if(this.config.afterHooks.length > 0){
 			this.config.afterHooks.map(
 				item => itself.server.on('after', item(itself.config))
 			)
 		}
-		
+
 		// Set up Audit logger
 		if(this.config.logging.audit && !this.config.logging.auditLogger){
 			this.server.on('after', restify.auditLogger({
@@ -150,31 +128,30 @@ class RestifyServerManager {
 					count: itself.config.logging.back_copies_count  // back copies
 				}]
 			   })
-			  }));			
+			  }));
 		}else if(this.config.logging.audit && this.config.logging.auditLogger){
 			this.server.on('after', restify.auditLogger({
 			   log: this.config.logging.auditLogger
 			  }));
 		}
 
-		return this.server;		
+		return this.server;
 	}
-	
+
 	startServer(){
 	 let itself = this;
 	 return this.server.listen(this.config.server.port, function () {
        console.log(itself.config.server.protocol + " Server listening on port: " + itself.config.server.port);
      });
 	}
-	
+
 	stopServer(){
 	 return this.server.close();
 	}
 }
 
 module.exports = {
- RestifyServerManager: RestifyServerManager,
- errorHandler: errorHandler
+ RestifyServerManager: RestifyServerManager
 }
 
 /**
@@ -212,7 +189,7 @@ var mergeConfig = function (config) {
 				enabled: (paramConf.security && paramConf.security.enabled)?paramConf.security.enabled:false,
 				privatekeylocation: (paramConf.security && paramConf.security.privatekeylocation)?paramConf.security.privatekeylocation:"certs/server-cert.pem",
 				algorithm: (paramConf.security && paramConf.security.algorithm)?paramConf.security.algorithm:"RS256",
-				exceptedRoutes: (paramConf.security && paramConf.security.exceptedRoutes)?paramConf.security.exceptedRoutes:[]				
+				exceptedRoutes: (paramConf.security && paramConf.security.exceptedRoutes)?paramConf.security.exceptedRoutes:[]
 			},
 			routes: paramConf.routes || [],
 			logging: {
@@ -232,7 +209,5 @@ var mergeConfig = function (config) {
 				url: (paramConf.server && paramConf.server.url)?paramConf.server.url:"http://0.0.0.1:8480"
 			}
   	    };
-	return _conf;	  
+	return _conf;
 }
-
-
